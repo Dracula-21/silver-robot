@@ -1,28 +1,42 @@
 name: Build APK
-on: [push, workflow_dispatch]
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Позволяет запускать сборку вручную кнопкой в GitHub
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
-          pip install "Cython==0.29.36" buildozer
-          
+      # 1. Обновленный экшен для клонирования репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Установка Java (обычно для Android нужна 17 версия)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 3. Выдача прав на запуск Gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 4. Сборка APK
       - name: Build APK
-        run: |
-          rm -rf .buildozer
-          echo "y" | buildozer -v android debug 2>&1 | tee build.log
-          
-      - name: Show Log on Failure
-        if: failure()
-        run: tail -n 150 build.log
-        
+        run: ./gradlew assembleDebug # Замените на assembleRelease, если собираете релиз
+
+      # 5. ПРАВИЛЬНАЯ ЗАГРУЗКА АРТЕФАКТА
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: package
-          path: bin/*.apk
+          name: app-debug-apk # Название архива, который вы скачаете
+          # Ищем APK файлы во всех подпапках сборки
+          path: app/build/outputs/apk/**/*.apk 
+          # Если файл не найден, шаг завершится ОШИБКОЙ, а не просто предупреждением
+          if-no-files-found: error 
