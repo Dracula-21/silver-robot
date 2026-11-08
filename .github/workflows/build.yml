@@ -1,13 +1,32 @@
-# ... предыдущие шаги (Checkout, JDK и т.д.) ...
+name: Build APK
 
-# Добавьте этот шаг перед "Build with Buildozer"
-- name: Clean Buildozer cache
-  run: |
-    rm -rf ~/.buildozer
-    rm -rf .buildozer
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
-- name: Build with Buildozer
-  run: |
-    docker run --rm \
-      -v "${{ github.workspace }}":/home/user/hostcwd \
-      kivy/buildozer:latest android debug
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean Buildozer cache
+        run: |
+          rm -rf ~/.buildozer
+          rm -rf .buildozer
+
+      - name: Build with Buildozer
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/home/user/hostcwd \
+            kivy/buildozer:latest android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: bin/*.apk
+          if-no-files-found: error
