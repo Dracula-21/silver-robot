@@ -10,7 +10,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
-          pip install "cython<3.0" buildozer
+          # Жестко фиксируем версию Cython, чтобы Kivy собрался без ошибок
+          pip install --upgrade "Cython==0.29.33" buildozer
           
       - name: Build APK
         run: |
