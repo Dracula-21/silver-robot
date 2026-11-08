@@ -5,23 +5,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      
       - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
           pip install --upgrade buildozer cython
-          
       - name: Build APK
         run: |
           rm -rf .buildozer
-          echo "y" | buildozer -v android debug > build_log.txt 2>&1 || true
-          
-      - name: Show Errors (If any)
-        if: always()
-        run: |
-          grep -i -A 10 -B 2 "error" build_log.txt | tail -n 50 || echo "No errors found"
-          
+          echo "y" | buildozer -v android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
