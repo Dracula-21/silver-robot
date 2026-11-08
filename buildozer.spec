@@ -8,7 +8,7 @@ requirements = python3,kivy,telethon
 android.archs = arm64-v8a
 android.accept_sdk_license = True
 android.api = 33
-android.ndk = 25b
+android.ndk = 23b
 p4a.branch = develop
 
 [buildozer]
