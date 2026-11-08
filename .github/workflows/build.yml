@@ -3,40 +3,28 @@ name: Build APK
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
-  workflow_dispatch: # Позволяет запускать сборку вручную кнопкой в GitHub
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Обновленный экшен для клонирования репозитория
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Установка Java (обычно для Android нужна 17 версия)
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      # Сборка APK с помощью Buildozer
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          command: buildozer android debug  # для релиза: buildozer android release
+          buildozer_version: stable
 
-      # 3. Выдача прав на запуск Gradle
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      # 4. Сборка APK
-      - name: Build APK
-        run: ./gradlew assembleDebug # Замените на assembleRelease, если собираете релиз
-
-      # 5. ПРАВИЛЬНАЯ ЗАГРУЗКА АРТЕФАКТА
+      # Загрузка готового APK-файла
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk # Название архива, который вы скачаете
-          # Ищем APK файлы во всех подпапках сборки
-          path: app/build/outputs/apk/**/*.apk 
-          # Если файл не найден, шаг завершится ОШИБКОЙ, а не просто предупреждением
-          if-no-files-found: error 
+          name: app-debug-apk
+          path: ${{ steps.buildozer.outputs.filename }}
+          if-no-files-found: error
