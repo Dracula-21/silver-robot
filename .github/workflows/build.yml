@@ -15,7 +15,12 @@ jobs:
       - name: Build APK
         run: |
           rm -rf .buildozer
-          echo "y" | buildozer -v android debug
+          echo "y" | buildozer -v android debug > build_log.txt 2>&1 || true
+          
+      - name: Show Errors (If any)
+        if: always()
+        run: |
+          grep -i -A 10 -B 2 "error" build_log.txt | tail -n 50 || echo "No errors found"
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
