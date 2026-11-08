@@ -7,13 +7,13 @@ from kivy.uix.scrollview import ScrollView
 from telethon import TelegramClient
 import asyncio
 
-# ВАШИ ДАННЫЕ (ОБЯЗАТЕЛЬНО ВСТАВЬТЕ СВОИ)
-API_ID = '33600401'     
-API_HASH = 'f1ef88aa120c93c9ad95a2c246acaf17' 
+# ВАШИ ДАННЫЕ
+API_ID = 'ВСТАВЬ_СВОЙ_API_ID'
+API_HASH = 'ВСТАВЬ_СВОЙ_API_HASH'
 
 class PhoneCheckerApp(App):
     def build(self):
-        self.title = 'OSINT Phone Checker'
+        self.title = 'Phone Checker'
         self.layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
         
         self.phone_input = TextInput(hint_text='Введите номер (+998...)', multiline=False, size_hint_y=None, height=50)
@@ -32,7 +32,6 @@ class PhoneCheckerApp(App):
         return self.layout
 
     async def _check(self, phone):
-        # Используем существующую сессию
         client = TelegramClient('session', API_ID, API_HASH)
         await client.connect()
         if not await client.is_user_authorized():
