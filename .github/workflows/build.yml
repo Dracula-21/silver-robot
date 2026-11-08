@@ -10,12 +10,19 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
-          pip install "Cython==0.29.36" buildozer
+          pip install --upgrade buildozer cython
           
       - name: Build APK
         run: |
           rm -rf .buildozer
-          echo "y" | buildozer -v android debug
+          # Сохраняем весь лог в файл
+          echo "y" | buildozer -v android debug > build.log 2>&1 || true
+          
+      - name: Show Real Error
+        if: always()
+        run: |
+          # Ищем настоящую ошибку в логе и выводим только её
+          grep -i -B 5 -A 15 "error:" build.log | tail -n 40 || echo "Ошибка не найдена в логе"
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
