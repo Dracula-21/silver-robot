@@ -20,7 +20,7 @@ jobs:
       - name: Build APK
         run: |
           rm -rf .buildozer
-          echo "y" | buildozer -v android debug || (grep -B 5 -A 15 -i "error" .buildozer/android/platform/build-arm64-v8a/dists/phonechecker/build.log || true)
+          echo "y" | buildozer -v android debug
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
