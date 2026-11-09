@@ -22,15 +22,14 @@ jobs:
           rm -rf .buildozer
           echo "y" | buildozer -v android debug > build.log 2>&1 || true
           
+      - name: Show Error (If Failed)
+        if: always()
+        run: |
+          echo "=== ПОСЛЕДНИЕ СТРОКИ ЛОГА ==="
+          tail -n 30 build.log
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk-file
           path: bin/*.apk
-          
-      - name: Upload Log File (If Failed)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
