@@ -7,9 +7,8 @@ version = 0.1
 requirements = python3,kivy
 android.archs = arm64-v8a
 android.accept_sdk_license = True
-android.api = 33
-android.ndk = 25b
-p4a.branch = develop
+android.ndk = 23b
+p4a.branch = master
 
 [buildozer]
 log_level = 2
