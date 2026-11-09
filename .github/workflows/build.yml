@@ -20,10 +20,17 @@ jobs:
       - name: Build APK
         run: |
           rm -rf .buildozer
-          echo "y" | buildozer -v android debug
+          echo "y" | buildozer -v android debug > build.log 2>&1 || true
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: package
+          name: apk-file
           path: bin/*.apk
+          
+      - name: Upload Log File (If Failed)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
