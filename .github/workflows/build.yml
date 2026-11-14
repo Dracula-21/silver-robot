@@ -6,33 +6,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
         with:
-          python-version: '3.10'
-          
-      - name: Install System Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
-          
-      - name: Install Buildozer and Cython
-        run: |
-          pip install --upgrade buildozer "cython<3.0"
-          
-      - name: Build APK
-        run: |
-          rm -rf .buildozer
-          echo "y" | buildozer -v android debug > build_output.log 2>&1 || true
-          
-      - name: Show Real Error
-        if: always()
-        run: |
-          echo "=== НАЙДЕННАЯ ОШИБКА ==="
-          grep -i -A 15 -B 5 "error" build_output.log | tail -n 50
+          command: buildozer -v android debug
+          buildozer_version: stable
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: package
-          path: bin/*.apk
+          path: ${{ steps.buildozer.outputs.filename }}
