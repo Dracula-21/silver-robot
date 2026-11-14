@@ -20,20 +20,14 @@ jobs:
         run: |
           pip install --upgrade buildozer "cython<3.0"
           
+      - name: Clean Gradle Cache
+        run: |
+          rm -rf ~/.gradle/caches/
+          rm -rf .buildozer
+          
       - name: Build APK
         run: |
-          rm -rf .buildozer
-          echo "y" | buildozer -v android debug > full_log.txt 2>&1 || true
-          
-      - name: Show Exact Error (If Failed)
-        if: always()
-        run: |
-          if [ -f bin/*.apk ]; then
-            echo "APK УСПЕШНО СОБРАН!"
-          else
-            echo "=== ОШИБКА ==="
-            grep -i -B 5 -A 15 "error" full_log.txt | tail -n 40 || tail -n 50 full_log.txt
-          fi
+          echo "y" | buildozer -v android debug
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
