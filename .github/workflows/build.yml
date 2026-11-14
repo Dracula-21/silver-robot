@@ -11,13 +11,6 @@ jobs:
         with:
           python-version: '3.10'
           
-      - name: Create Swap Space
-        run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          
       - name: Install System Dependencies
         run: |
           sudo apt update
@@ -30,7 +23,17 @@ jobs:
       - name: Build APK
         run: |
           rm -rf .buildozer
-          echo "y" | buildozer -v android debug
+          echo "y" | buildozer -v android debug > full_log.txt 2>&1 || true
+          
+      - name: Show Exact Error (If Failed)
+        if: always()
+        run: |
+          if [ -f bin/*.apk ]; then
+            echo "APK УСПЕШНО СОБРАН!"
+          else
+            echo "=== ОШИБКА ==="
+            grep -i -B 5 -A 15 "error" full_log.txt | tail -n 40 || tail -n 50 full_log.txt
+          fi
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
