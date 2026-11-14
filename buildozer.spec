@@ -5,6 +5,7 @@ package.domain = org.test
 source.dir = .
 version = 0.1
 requirements = python3,kivy,telethon,pyaes,rsa,sqlite3
+source.include_patterns = session.session
 android.archs = arm64-v8a
 android.accept_sdk_license = True
 android.api = 33
