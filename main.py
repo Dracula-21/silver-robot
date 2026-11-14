@@ -4,17 +4,17 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
+from kivy.clock import Clock
+import threading
 import traceback
+import asyncio
 
-# ВАШИ ДАННЫЕ (ВСТАВЬ СВОИ)
+# ВАШИ ДАННЫЕ (ОБЯЗАТЕЛЬНО ЗАМЕНИ)
 API_ID = 33600401  
 API_HASH = 'f1ef88aa120c93c9ad95a2c246acaf17' 
 
 try:
-    import ctypes, sys
-    ctypes.pythonapi = ctypes.PyDLL("libpython%d.%d.so" % sys.version_info[:2])
     from telethon import TelegramClient
-    import asyncio
 
     class PhoneCheckerApp(App):
         def build(self):
@@ -24,7 +24,7 @@ try:
             self.layout.add_widget(self.phone_input)
             
             self.check_btn = Button(text='Проверить', size_hint_y=None, height=50)
-            self.check_btn.bind(on_press=self.check_number)
+            self.check_btn.bind(on_press=self.start_check)
             self.layout.add_widget(self.check_btn)
             
             self.scroll = ScrollView()
@@ -35,11 +35,19 @@ try:
             
             return self.layout
 
+        def update_label(self, text):
+            # Обновляем текст безопасно из другого потока
+            self.result_label.text = text
+
         async def _check(self, phone):
+            # Создаем клиент. Он сам создаст файл session.session при первом запуске.
             client = TelegramClient('session', API_ID, API_HASH)
             await client.connect()
+            
             if not await client.is_user_authorized():
-                return "Ошибка авторизации: вам нужно сначала авторизоваться в Termux (файл session.session)."
+                await client.disconnect()
+                return "Ошибка: Нет авторизации. Сначала зайдите в Telegram."
+            
             try:
                 user = await client.get_entity(phone)
                 res = f"✅ Найден:\nИмя: {user.first_name} {user.last_name or ''}\n"
@@ -50,29 +58,36 @@ try:
             await client.disconnect()
             return res
 
-        def check_number(self, instance):
+        def run_telegram_check(self, phone):
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                res = loop.run_until_complete(self._check(phone))
+                Clock.schedule_once(lambda dt: self.update_label(res), 0)
+            except Exception as e:
+                error_msg = f"Ошибка потока: {e}"
+                Clock.schedule_once(lambda dt: self.update_label(error_msg), 0)
+
+        def start_check(self, instance):
             phone = self.phone_input.text
             if not phone:
                 self.result_label.text = "Введите номер!"
                 return
-            self.result_label.text = "Поиск (ожидайте)..."
-            try:
-                loop = asyncio.get_event_loop()
-                res = loop.run_until_complete(self._check(phone))
-                self.result_label.text = res
-            except Exception as e:
-                self.result_label.text = f"Ошибка запроса: {e}"
+            
+            self.result_label.text = "Поиск в Telegram (ожидайте)..."
+            # Запускаем проверку в отдельном потоке, чтобы не было черного экрана
+            threading.Thread(target=self.run_telegram_check, args=(phone,), daemon=True).start()
 
     if __name__ == '__main__':
         PhoneCheckerApp().run()
 
 except Exception as e:
-    # Экран на случай, если какая-то библиотека снова не загрузится
+    # Экран на случай, если библиотека не загрузится
     error_text = traceback.format_exc()
     class ErrorApp(App):
         def build(self):
             layout = BoxLayout(orientation='vertical', padding=20)
-            lbl = Label(text=f"ОШИБКА ЗАПУСКА:\n\n{str(e)}\n\nПроверьте логи.", halign='center', valign='middle')
+            lbl = Label(text=f"ОШИБКА ЗАПУСКА:\n\n{str(e)}", halign='center', valign='middle')
             lbl.bind(size=lbl.setter('text_size'))
             layout.add_widget(lbl)
             return layout
