@@ -10,7 +10,6 @@ android.accept_sdk_license = True
 android.api = 33
 android.ndk = 25b
 orientation = portrait
-fullscreen = 0
 
 [buildozer]
 log_level = 2
